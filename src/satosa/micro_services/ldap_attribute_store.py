@@ -61,6 +61,7 @@ class LdapAttributeStore(ResponseMicroService):
         "client_strategy": "REUSABLE",
         "pool_size": 10,
         "pool_keepalive": 10,
+        "mode": None
     }
 
     def __init__(self, config, *args, **kwargs):
@@ -259,6 +260,7 @@ class LdapAttributeStore(ResponseMicroService):
         ldap_url = config["ldap_url"]
         bind_dn = config["bind_dn"]
         bind_password = config["bind_password"]
+        mode = config["mode"]
 
         if not ldap_url:
             raise LdapAttributeStoreError("ldap_url is not configured")
@@ -281,6 +283,17 @@ class LdapAttributeStore(ResponseMicroService):
         args = {'host': config["ldap_url"]}
         if client_strategy == ldap3.MOCK_SYNC:
             args['get_info'] = ldap3.OFFLINE_SLAPD_2_4
+
+        mode_map = {
+            "IP_SYSTEM_DEFAULT": ldap3.IP_SYSTEM_DEFAULT,
+            "IP_V4_ONLY": ldap3.IP_V4_ONLY,
+            "IP_V6_ONLY": ldap3.IP_V6_ONLY,
+            "IP_V4_PREFERRED": ldap3.IP_V4_PREFERRED,
+            "IP_V6_PREFERRED": ldap3.IP_V6_PREFERRED
+        }
+
+        if mode and mode in mode_map:
+            args['mode'] = mode_map[mode]
 
         server = ldap3.Server(**args)
 
